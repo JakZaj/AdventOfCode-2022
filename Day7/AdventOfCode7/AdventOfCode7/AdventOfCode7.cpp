@@ -9,7 +9,6 @@ using namespace std;
 #define total_disk_space 70000000
 #define needed_unused_space 30000000
 
-
 class File {
 public:
     string name;
@@ -17,6 +16,8 @@ public:
     File(string n, int s) {
         name = n;
         size = s;
+    }
+    ~File() {
     }
 };
 
@@ -37,10 +38,23 @@ public:
     }
 
     Directory(string n, Directory& parrent, Directory& out) {
-        name = string(n);
+        name = n;
         totalSize = 0;
         parrentDir = &parrent;
         outermostDir = &out;
+    }
+    ~Directory() {
+        for (size_t i = 0; i < file.size(); i++)
+        {
+            delete file.at(i);
+        }
+        file.clear();
+
+        for (size_t i = 0; i < childrenDir.size(); i++)
+        {
+            delete childrenDir.at(i);
+        }
+        childrenDir.clear();
     }
 
     int calculateTotalSize() {
@@ -159,19 +173,16 @@ int main()
                         break;
                     }
 
-                    if (lineSplit.at(0) == "dir") {
+                    if (lineSplit.at(0) == "dir") 
                         ptrDirectory->addChildrenDir(new Directory(lineSplit.at(1)));
-                    }
                     else
-                    {
                         ptrDirectory->addFile(new File(lineSplit.at(1), stoi(lineSplit.at(0))));
-                    }
 
                 } 
             }
             if (lineSplit.at(1) == "cd")
             {
-                if (ptrDirectory == nullptr)
+                if (ptrDirectory == nullptr) 
                     ptrDirectory = new Directory(lineSplit.at(2));
                 else
                     ptrDirectory = ptrDirectory->doOperationCD(lineSplit.at(2));
@@ -179,9 +190,10 @@ int main()
             }
         }
         if (ptrDirectory != nullptr) {
-            ptrDirectory->outermostDir->calculateTotalSize();
-            cout << "Sum of the total sizes " << ptrDirectory->outermostDir->calculateSumTotalSizes(at_most_total_size)<< "\n";
-            cout << "Smallest directory to deleted " << ptrDirectory->outermostDir->findDirectoryToDeleted(needed_unused_space - (total_disk_space - ptrDirectory->outermostDir->totalSize) ) << "\n";
+            ptrDirectory = ptrDirectory->outermostDir;
+            ptrDirectory->calculateTotalSize();
+            cout << "Sum of the total sizes " << ptrDirectory->calculateSumTotalSizes(at_most_total_size)<< "\n";
+            cout << "Smallest directory to deleted " << ptrDirectory->findDirectoryToDeleted(needed_unused_space - (total_disk_space - ptrDirectory->outermostDir->totalSize) ) << "\n";
         }
 
         myfile.close();
@@ -190,5 +202,9 @@ int main()
 
     else cout << "Unable to open file";
 
+    lineSplit.clear();
+    delete ptrDirectory;
+
+    return 0;
 }
 
